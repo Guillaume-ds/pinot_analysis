@@ -12,7 +12,14 @@ title_style = """
             font-size: 24px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .small-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
             text-align: center;
         }
     </style>

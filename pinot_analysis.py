@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import datetime 
 import time
 
 from Utils.styles import title_style,paragraph_style
@@ -8,7 +9,10 @@ from Utils.styles import title_style,paragraph_style
 # Data 
 entreprises = ["Pinot central","P II","PC","PH","PM","PL","P gourmet"]
 all_data = pd.read_csv('./Data/data_pinot.csv')
-st.session_state.selected_entreprise = None 
+all_data.Mois = pd.to_datetime(all_data.Mois)
+st.session_state.data = True
+def set_data_false():
+    st.session_state.data = False
 
 # Top Page
 st.markdown(title_style, unsafe_allow_html=True)
@@ -25,47 +29,120 @@ st.sidebar.divider()
     
 with st.sidebar:
     # Selection d'entreprise
-    selected_entreprise = st.selectbox("Sélectionnez une entreprise", entreprises)
+    st.session_state.selected_entreprise = st.selectbox("Sélectionnez une entreprise", entreprises,on_change=set_data_false)
 
 st.markdown(title_style, unsafe_allow_html=True)
+
+# Container 
 
 container = st.empty()
 
 if st.session_state.selected_entreprise == None:
+    container.markdown(f"""
+                        <h1 class="section-title">Veuillez séléctionner une entreprise à analyser </h1>
+                        """, unsafe_allow_html=True)
 
-    container.markdown('<h1 class="section-title">Veuillez séléctionner une entreprise à analyser </h1>', unsafe_allow_html=True)
-    with st.sidebar:
-        scrap_selected_entreprise = st.button(f'Collecter les données de {selected_entreprise}')
+with st.sidebar:
+    scrap_selected_entreprise = st.button(f'Collecter les données de {st.session_state.selected_entreprise}')
 
 if scrap_selected_entreprise:
-    with st.spinner(f'Collecte des données de l\'entrepise {selected_entreprise}...'):
-        time.sleep(1.2)
+    with st.spinner(f'Collecte des données de l\'entrepise {st.session_state.selected_entreprise}...'):
+        time.sleep(.2)
         container.empty()
-        container.markdown(f'<h1 class="section-title">Données de l\'entrepise {selected_entreprise} collectées !</h1>', unsafe_allow_html=True)
-        st.session_state.selected_entreprise = selected_entreprise 
+        st.session_state.data = True
+        container.markdown(f'<h1 class="section-title">Données de l\'entreprise {st.session_state.selected_entreprise} collectées !</h1>', unsafe_allow_html=True)
 
-if st.session_state.selected_entreprise != None:
 
-    tab1, tab2, tab3 = st.tabs(["Performance Mensuel", "Focus Google", "Focus Uber Eats"])
-    spec_data = all_data[all_data.Entreprise == st.session_state.selected_entreprise]
+tab1, tab2, tab3 = st.tabs(["Performance Mensuel", "Focus Google", "Focus Uber Eats"])
+
+st.session_state.spec_data = all_data[all_data.Entreprise == st.session_state.selected_entreprise]
+
+if st.session_state.data == False :
+    container.markdown(f'<h1 class="section-title">Veuillez charger les données de l\'entreprise {st.session_state.selected_entreprise}</h1>', unsafe_allow_html=True)
+
+if st.session_state.data == True:
+    with st.sidebar:
+        st.markdown(title_style, unsafe_allow_html=True)
+        st.markdown(title_style, unsafe_allow_html=True)
+
+        col1, col2 = st.columns(2)
+        m = col1.date_input(label="Mois debut",
+                                value=pd.to_datetime("2022-01-01"),
+                                min_value=pd.to_datetime("2022-01-01"),
+                                format="YYYY-MM-DD")
+        st.session_state.month = pd.to_datetime(m).replace(day=1)
+        m2 = col2.date_input(label="Mois fin",
+                                value=pd.to_datetime("2023-09-01"),
+                                min_value=pd.to_datetime("2022-01-01"),
+                                format="YYYY-MM-DD")
+        st.session_state.month2 = pd.to_datetime(m2).replace(day=1)
+
+    container.markdown(f"""
+                    <h1 class="section-title">Données de l'entreprise {st.session_state.selected_entreprise}</h1>
+                    <h3 class="small-title">Du {st.session_state.month.date()} au {st.session_state.month2.date()}</h3>
+                    """, unsafe_allow_html=True)
 
     with tab1:
-        col1, col2, col3 = st.columns(3)
+        st.markdown(title_style, unsafe_allow_html=True)
 
+        st.session_state.spec_data_month = st.session_state.spec_data[(st.session_state.spec_data.Mois >= st.session_state.month) 
+                                                                    & (st.session_state.spec_data.Mois <= st.session_state.month2)]
+
+        st.session_state.month3 = (st.session_state.month2 - datetime.timedelta(days=4)).replace(day=1)
+
+        st.markdown(f"""
+                <h3 class="small-title">Résultat au {st.session_state.month2.date()}</h3>
+                """, unsafe_allow_html=True)
+
+        col1, col2, col3 = st.columns(3)
         col1.metric("Score Google",
-                    spec_data[spec_data.Mois == "2023-09-30"]["Score Google"], 
-                    np.round(float(spec_data[spec_data.Mois == "2023-09-30"]["Score Google"].values - spec_data[spec_data.Mois == "2023-08-31"]["Score Google"]),2))
+                    st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Google"], 
+                    np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Google"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Score Google"]),2))
         col2.metric("Score Uber",
-                    spec_data[spec_data.Mois == "2023-09-30"]["Score Uber"], 
-                    np.round(float(spec_data[spec_data.Mois == "2023-09-30"]["Score Uber"].values - spec_data[spec_data.Mois == "2023-08-31"]["Score Uber"]),2))
+                    st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Uber"], 
+                    np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Uber"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Score Uber"]),2))
         col3.metric("Nombre de commandes",
-                    spec_data[spec_data.Mois == "2023-09-30"]["Commandes"], 
-                    np.round(float(spec_data[spec_data.Mois == "2023-09-30"]["Commandes"].values - spec_data[spec_data.Mois == "2023-08-31"]["Commandes"]),2))
-        st.write()
+                    st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Commandes"], 
+                    np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Commandes"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Commandes"]),2))
+
+        st.markdown(title_style, unsafe_allow_html=True)
+        st.markdown(title_style, unsafe_allow_html=True)
+        st.markdown(title_style, unsafe_allow_html=True)
+        st.markdown(title_style, unsafe_allow_html=True)
+
+        st.markdown(f"""
+                <h3 class="small-title">Moyenne de la période</h3>
+                """, unsafe_allow_html=True)
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Score Google",
+                    np.round(st.session_state.spec_data_month["Score Google"].mean(),2), 
+                    np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month .Mois == st.session_state.month2]["Score Google"].values 
+                            - st.session_state.spec_data_month["Score Google"].mean()),2))
+        col2.metric("Score Uber",
+                    np.round(st.session_state.spec_data_month["Score Uber"].mean(),2), 
+                    np.round(float(st.session_state.spec_data_month [st.session_state.spec_data_month .Mois == st.session_state.month2]["Score Uber"].values 
+                            - st.session_state.spec_data_month["Score Uber"].mean()),2))
+        col3.metric("Nombre de commandes",
+                    np.round(st.session_state.spec_data_month["Commandes"].mean(),2), 
+                    np.round(float(st.session_state.spec_data_month [st.session_state.spec_data_month .Mois == st.session_state.month2]["Commandes"].values 
+                            - st.session_state.spec_data_month["Commandes"].mean()),2))
+
+        st.markdown(title_style, unsafe_allow_html=True)
+        st.markdown(title_style, unsafe_allow_html=True)
+
+        with st.expander("Voir les données"):
+            cols = ["Mois","Score Google","Score Uber","Commandes","% erreurs"]
+            st.dataframe(st.session_state.spec_data[cols])
 
     with tab2:
-        st.line_chart(data=spec_data, x="Mois", y="Score Google", use_container_width=True)
+        st.line_chart(data=st.session_state.spec_data, x="Mois", y="Score Google", use_container_width=True)
+
+
 
     with tab3:
-        st.line_chart(data=spec_data, x="Mois", y="Score Uber", use_container_width=True)
+        st.line_chart(data=st.session_state.spec_data, x="Mois", y="Score Uber", use_container_width=True)
 
