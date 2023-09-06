@@ -95,18 +95,47 @@ if st.session_state.data == True:
                 """, unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
+
+        score_google = st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Google"]
+        score_google_1 = np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Google"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Score Google"]),2)
         col1.metric("Score Google",
-                    st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Google"], 
-                    np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Google"].values 
-                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Score Google"]),2))
+                    score_google, 
+                    score_google_1
+                    )
+
+        score_uber = st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Uber"]
+        score_uber_1 = np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Uber"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Score Uber"]),2)
         col2.metric("Score Uber",
-                    st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Uber"], 
-                    np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Uber"].values 
-                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Score Uber"]),2))
-        col3.metric("Nombre de commandes",
+                    score_uber, 
+                    np.round(score_uber_1,2)
+                    )
+
+        col3.metric("Score moyen",
+            np.round((score_uber+score_google)/2,2), 
+            np.round((score_uber_1+score_google_1)/2))
+
+        score_prct = st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["% erreurs"]
+        score_prct_1 = np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["% erreurs"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["% erreurs"]),2)
+        col1.metric("% erreurs",
+                    score_prct, 
+                    score_prct_1
+                    )
+        
+        col2.metric("Nombre de commandes",
                     st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Commandes"], 
                     np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Commandes"].values 
                             - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Commandes"]),2))
+
+        score_sal = st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Nombre Salaries"]
+        score_sal_1 = np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Nombre Salaries"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Nombre Salaries"]),2)
+        col3.metric("Nb salariés",
+                    score_sal, 
+                    score_sal_1
+                    )
 
         st.markdown(title_style, unsafe_allow_html=True)
         st.markdown(title_style, unsafe_allow_html=True)
@@ -118,18 +147,50 @@ if st.session_state.data == True:
                 """, unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
+
+        score_google = np.round(st.session_state.spec_data_month["Score Google"].mean(),2)
+        score_google_1 = np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Score Google"].values 
+                            - st.session_state.spec_data_month["Score Google"].mean()),2)
         col1.metric("Score Google",
-                    np.round(st.session_state.spec_data_month["Score Google"].mean(),2), 
-                    np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month .Mois == st.session_state.month2]["Score Google"].values 
-                            - st.session_state.spec_data_month["Score Google"].mean()),2))
+                    score_google, 
+                    score_google_1)
+
+        score_uber = np.round(st.session_state.spec_data_month["Score Uber"].mean(),2)
+        score_uber_1 = np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month .Mois == st.session_state.month2]["Score Uber"].values 
+                            - st.session_state.spec_data_month["Score Uber"].mean()),2)
+
         col2.metric("Score Uber",
-                    np.round(st.session_state.spec_data_month["Score Uber"].mean(),2), 
-                    np.round(float(st.session_state.spec_data_month [st.session_state.spec_data_month .Mois == st.session_state.month2]["Score Uber"].values 
-                            - st.session_state.spec_data_month["Score Uber"].mean()),2))
-        col3.metric("Nombre de commandes",
+                    score_uber, 
+                    score_uber_1)
+
+        col3.metric("Score moyen",
+                    np.round((score_uber+score_google)/2,2), 
+                    (score_uber_1+score_google_1)/2)
+
+
+
+
+        score_prct = st.session_state.spec_data_month["% erreurs"].mean()
+        score_prct_1 = np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["% erreurs"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["% erreurs"]),2)
+        col1.metric("% erreurs",
+                    np.round(score_prct,2), 
+                    score_prct_1
+                    )
+        
+        col2.metric("Nombre de commandes",
                     np.round(st.session_state.spec_data_month["Commandes"].mean(),2), 
                     np.round(float(st.session_state.spec_data_month [st.session_state.spec_data_month .Mois == st.session_state.month2]["Commandes"].values 
                             - st.session_state.spec_data_month["Commandes"].mean()),2))
+
+        score_sal = st.session_state.spec_data_month["Nombre Salaries"].mean()
+        score_sal_1 = np.round(float(st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month2]["Nombre Salaries"].values 
+                            - st.session_state.spec_data_month[st.session_state.spec_data_month.Mois == st.session_state.month3]["Nombre Salaries"]),2)
+        col3.metric("Nb salariés",
+                    score_sal, 
+                    score_sal_1
+                    )
+
 
         st.markdown(title_style, unsafe_allow_html=True)
         st.markdown(title_style, unsafe_allow_html=True)
